@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23004494%22/%3E%3Cpath d=%22M8 3v4M4 7h8M4 7v3M12 7v3%22 stroke=%22%23ffd617%22 stroke-width=%221.6%22 fill=%22none%22/%3E%3C/svg%3E">
+    <title>{% block title %}{{ site_title }}{% endblock %}</title>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+    <script>
+        window.APP_BASE = {{ request.script_root | tojson }};
+        window.STATIC_EXPORT = {{ 'true' if static_export else 'false' }};
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/font-awesome/css/all.min.css') }}">
+    <style>
+        /* Stili specifici per base.html */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            color: var(--eu-blue);
+            margin-bottom: 15px;
+        }
+        .modal-close {
+            float: right;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1100;
+            display: none;
+        }
+        .notification.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        .notification.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    {% if static_export %}<div class="eu-bar">Demo statica di sola lettura · il builder e le API girano solo nell'app Flask · <a href="https://github.com/manzolo/flow-manager">codice su GitHub</a></div>{% endif %}
+    <header class="app-header">
+        <div class="app-header-brand">
+            <a href="{{ url_for('index') }}" class="app-header-title"><i class="fas fa-sitemap" aria-hidden="true"></i> {{ site_title }}</a>
+            <span class="app-header-subtitle">{{ site_subtitle }}</span>
+        </div>
+        <div class="app-header-actions">
+            {% if admin_mode and not static_export %}
+                {% if is_admin %}
+                <a href="{{ url_for('admin_logout') }}" class="app-header-btn" title="Logout admin" aria-label="Logout admin">
+                    <i class="fas fa-user-check" aria-hidden="true"></i>
+                </a>
+                {% else %}
+                <a href="{{ url_for('admin_login') }}" class="app-header-btn" title="Accesso admin" aria-label="Accesso admin">
+                    <i class="fas fa-user-lock" aria-hidden="true"></i>
+                </a>
+                {% endif %}
+            {% endif %}
+            <button id="theme-toggle" class="theme-toggle-btn"
+                    aria-label="Attiva modalità scura"
+                    aria-pressed="false"
+                    role="switch">
+                <i class="fas fa-moon" id="theme-icon" aria-hidden="true"></i>
+                <span class="theme-toggle-label">Tema</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- <div class="header">
+        <h1><i class="fas fa-sitemap"></i> Flow Manager</h1>
+        <p>{% block header_subtitle %}Gestisci i tuoi flussi decisionali interattivi{% endblock %}</p>
+    </div> -->
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-main">
+            <div>
+                <div class="site-footer-brand"><i class="fas fa-sitemap" aria-hidden="true"></i> {{ site_title }} <span class="site-footer-version">v{{ app_version }}</span></div>
+                <p class="site-footer-tagline">{{ site_tagline }}</p>
+            </div>
+            <nav aria-label="Collegamenti">
+                <a href="{{ url_for('index') }}">Home</a>
+                {% if org_name and org_url %}<a href="{{ org_url }}" target="_blank" rel="noopener">{{ org_name }}</a>{% endif %}
+                <a href="https://github.com/manzolo/flow-manager" target="_blank" rel="noopener">GitHub</a>
+            </nav>
+        </div>
+        <div class="site-footer-bottom">
+            © {{ current_year }}{% if org_name %} {{ org_name }} ·{% endif %} {{ site_title }} · v{{ app_version }}
+        </div>
+    </footer>
+
+    <!-- Modal per Guida Rapida o Altri Messaggi -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Notifiche -->
+    <div class="notification success" id="successNotification"></div>
+    <div class="notification error" id="errorNotification"></div>
+
+    <script src="{{ url_for('static', filename='vendor/js-yaml.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        function showModal(title, content) {
+            const modal = document.getElementById('modal');
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `<h3>${title}</h3>${content}`;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function showNotification(message, type = 'success') {
+            // Rimuovi notifiche precedenti
+            const existingNotifications = document.querySelectorAll('.toast-notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `toast-notification ${type}`;
+            notification.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            document.body.appendChild(notification);
+            
+            // Auto-remove dopo 5 secondi
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Chiudi il modale cliccando fuori
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                closeModal();
+            }
+        });
+    </script>
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

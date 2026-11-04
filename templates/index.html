@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Flow Manager - Home{% endblock %}
+
+{% block header_subtitle %}Crea e gestisci flussi decisionali interattivi{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if is_admin %}
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('flow_builder') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Crea Nuovo Flusso
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Stats Section -->
+    <!-- <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ total_flows }}</h3>
+                    <p>Flussi Totali</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ flows_by_category|length }}</h3>
+                    <p>Categorie</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-code-branch"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ total_nodes }}</h3>
+                    <p>Nodi Totali</p>
+                </div>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- Flows Section -->
+    <!-- <section class="flows-section">
+        <div class="section-header">
+            <h2>Flussi Disponibili</h2>
+            <div class="filter-controls">
+                <input type="text" id="search-flows" placeholder="Cerca flussi..." class="search-input">
+                <select id="category-filter" class="category-select">
+                    <option value="">Tutte le categorie</option>
+                    {% for category in flows_by_category.keys() %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div> -->
+
+        {% if flows %}
+            <!-- Flows by Category -->
+            {% for category, category_flows in flows_by_category.items() %}
+            <div class="category-section" data-category="{{ category }}">
+                <h3 class="category-title">
+                    <i class="fas fa-folder"></i> {{ category }}
+                    <span class="category-count">{{ category_flows|length }}</span>
+                </h3>
+                
+                <div class="flows-grid">
+                    {% for flow in category_flows %}
+                    <div class="flow-card" data-flow-id="{{ flow.id }}" data-search-text="{{ flow.name|lower }} {{ flow.description|lower }}">
+                        <div class="flow-card-header">
+                            <h4 class="flow-title">{{ flow.name }}</h4>
+                            {% if is_admin %}
+                            <div class="flow-actions">
+                                <button onclick="editFlow('{{ flow.id }}')" class="btn-icon" title="Modifica">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="duplicateFlow('{{ flow.id }}')" class="btn-icon" title="Duplica">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button onclick="exportFlow('{{ flow.id }}')" class="btn-icon" title="Esporta">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="deleteFlow('{{ flow.id }}')" class="btn-icon btn-danger" title="Elimina">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flow-card-body">
+                            <p class="flow-description">{{ flow.description or 'Nessuna descrizione' }}</p>
+                            
+                            <div class="flow-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-sitemap"></i> {{ flow.nodes_count }} nodi
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-code-branch"></i> v{{ flow.version or '1.0.0' }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-user"></i> {{ flow.author or 'Unknown' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-card-footer">
+                            <a href="{{ url_for('flow_viewer', flow_id=flow.id) }}" class="btn btn-primary btn-block">
+                                <i class="fas fa-play"></i> Avvia Flusso
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h3>Nessun flusso disponibile</h3>
+                <p>{% if is_admin %}Inizia creando il tuo primo flusso interattivo{% else %}Al momento non ci sono flussi disponibili{% endif %}</p>
+                {% if is_admin %}
+                <a href="{{ url_for('flow_builder') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Crea Primo Flusso
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Import Section - Solo per Admin -->
+    {% if is_admin %}
+    <section class="import-section">
+        <div class="import-card">
+            <h3><i class="fas fa-upload"></i> Importa Flusso</h3>
+            <p>Carica un file YAML per importare un flusso esistente</p>
+            <div class="import-dropzone" id="import-dropzone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Trascina un file YAML qui o clicca per selezionare</p>
+                <input type="file" id="import-file" accept=".yaml,.yml" style="display: none;">
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<style>
+    .category-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        color: var(--eu-blue);
+        font-size: 1.5em;
+    }
+
+    .category-count {
+        background: var(--eu-blue);
+        color: white;
+        padding: 2px 10px;
+        border-radius: var(--eu-radius);
+        font-size: 0.7em;
+        font-weight: normal;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .empty-state-icon {
+        font-size: 4em;
+        color: #cbd5e0;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        color: #4a5568;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #718096;
+        margin-bottom: 20px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .category-title {
+            color: #7f9cf5;
+        }
+
+        .category-count {
+            background: #7f9cf5;
+        }
+
+        .empty-state {
+            background: #2d3748;
+        }
+
+        .empty-state-icon {
+            color: #4a5568;
+        }
+
+        .empty-state h3 {
+            color: #e2e8f0;
+        }
+
+        .empty-state p {
+            color: #a0aec0;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ metadata.get('name', flow_id) }} - Flow Manager{% endblock %}
+
+{% block content %}
+<div class="flow-viewer-container" 
+     data-flow-id="{{ flow_id }}" 
+     data-start-node="{{ flow.get('start_node', '') }}" 
+     data-nodes="{{ flow.get('nodes', {}) | tojson | safe | b64encode }}">
+    <!-- Flow Header -->
+    <div class="flow-header">
+        <div class="flow-header-content">
+            <h1 class="flow-name">{{ metadata.get('name', flow_id) }}</h1>
+            <p class="flow-description">{{ metadata.get('description', '') }}</p>
+            <div class="flow-meta-bar">
+                <span class="meta-badge">
+                    <i class="fas fa-layer-group"></i> {{ metadata.get('category', 'General') }}
+                </span>
+                <span class="meta-badge">
+                    <i class="fas fa-code-branch"></i> v{{ metadata.get('version', '1.0.0') }}
+                </span>
+                <span class="meta-badge">
+                    <i class="fas fa-user"></i> {{ metadata.get('author', 'Unknown') }}
+                </span>
+            </div>
+        </div>
+        <div class="flow-header-actions">
+            <button onclick="restartFlow()" class="btn btn-secondary">
+                <i class="fas fa-redo"></i> Ricomincia
+            </button>
+            {% if is_admin %}
+            <button onclick="editFlow('{{ flow_id }}')" class="btn btn-outline">
+                <i class="fas fa-edit"></i> Modifica
+            </button>
+            <button onclick="exportFlow('{{ flow_id }}')" class="btn btn-outline">
+                <i class="fas fa-download"></i> Esporta
+            </button>
+            {% endif %}
+            <a href="{{ url_for('index') }}" class="btn btn-home">
+                <i class="fas fa-home"></i> Torna all'inizio
+            </a>
+        </div>
+    </div>
+
+    <!-- Notification Area -->
+    <div class="notification-area" id="notification-area" style="display: none;"></div>
+
+    <!-- Progress Bar -->
+    <div class="flow-progress">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Flow Content -->
+    <div class="flow-content">
+        <!-- Question Node - NASCOSTO INIZIALMENTE -->
+        <div id="question-container" class="node-container question-node hidden">
+            <div class="node-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h2 class="question-text" id="question-text"></h2>
+            <div class="answers-container" id="answers-container"></div>
+        </div>
+
+        <!-- Output Node - NASCOSTO INIZIALMENTE -->
+        <div id="output-container" class="node-container output-node hidden">
+            <div class="output-header">
+                <h2 class="output-title" id="output-title"></h2>
+            </div>
+            <div class="output-content" id="output-content"></div>
+            <div class="output-actions">
+                <button onclick="restartFlow()" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Ricomincia
+                </button>
+                <button onclick="goBack()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Torna Indietro
+                </button>
+                <button onclick="shareResult()" class="btn btn-outline">
+                    <i class="fas fa-share-alt"></i> Condividi
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State - VISIBILE INIZIALMENTE -->
+        <div id="loading-container" class="loading-container">
+            <div class="loader"></div>
+            <p>Caricamento...</p>
+        </div>
+    </div>
+
+    <!-- Navigation History -->
+    <div class="flow-navigation">
+        <h3>Percorso</h3>
+        <div id="navigation-history" class="nav-history"></div>
+    </div>
+</div>
+
+<!-- Include syntax highlighting for code blocks -->
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/highlight/github-dark.min.css') }}">
+<script src="{{ url_for('static', filename='vendor/marked.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/highlight/highlight.min.js') }}"></script>
+{% endblock %}

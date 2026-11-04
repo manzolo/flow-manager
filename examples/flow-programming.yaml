@@ -1,0 +1,81 @@
+start_node: question1
+metadata:
+  name: Programmazione
+  description: Questionario sulla programmazione
+  category: Demo
+  version: 1.0.0
+  author: Andrea Manzi
+
+nodes:
+  question1:
+    type: question
+    text: "Ti piace la programmazione?"
+    answers:
+      - label: "Sì"
+        next: question2
+      - label: "No"
+        next: output_no_programming
+  
+  question2:
+    type: question
+    text: "Quale linguaggio preferisci?"
+    answers:
+      - label: "Python"
+        next: output_python
+      - label: "JavaScript"
+        next: output_javascript
+  
+  output_python:
+    type: output
+    title: "🐍 Ottima scelta: Python!"
+    content: |
+      # Python è fantastico!
+      
+      Python è uno dei linguaggi più versatili e potenti. Ecco perché:
+      
+      - **Sintassi pulita e leggibile**
+      - **Vasta libreria standard**
+      - **Community enorme**
+      - **Ottimo per ML/AI, web, automazione**
+      
+      ## Risorse utili
+      
+      Inizia subito con la [documentazione ufficiale](https://docs.python.org/)
+      
+      ![Python Logo](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==)
+  
+  output_javascript:
+    type: output
+    title: "⚡ Fantastico: JavaScript!"
+    content: |
+      # JavaScript regna sul web!
+      
+      JavaScript è il linguaggio del web per eccellenza:
+      
+      - **Runs everywhere** (browser, server con Node.js)
+      - **Ecosystem ricchissimo** (npm)
+      - **Framework moderni** (React, Vue, Angular)
+      - **Full-stack development**
+      
+      ## Risorse
+      
+      Esplora [MDN Web Docs](https://developer.mozilla.org/) per imparare JS
+      
+      ![JS](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=)
+  
+  output_no_programming:
+    type: output
+    title: "😊 Nessun problema!"
+    content: |
+      # La programmazione non fa per tutti
+      
+      E va benissimo così! Ci sono tantissimi altri campi interessanti:
+      
+      - Design
+      - Marketing
+      - Content Creation
+      - Project Management
+      
+      Trova la tua passione! 🚀
+      
+      [Esplora altre carriere](https://www.example.com/careers)

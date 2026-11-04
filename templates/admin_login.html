@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Flow Manager{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 400px; margin-top: 100px;">
+    <div class="panel">
+        <h2 style="text-align: center;">🔒 Accesso Amministratore</h2>
+        <form id="loginForm" style="margin-top: 30px;">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Inserisci password admin" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Accedi</button>
+        </form>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/" class="btn btn-outline">Torna alla Home</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
+    
+    try {
+        const response = await fetch('/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showNotification('✅ Accesso effettuato!', 'success');
+            setTimeout(() => window.location.href = '/', 1000);
+        } else {
+            showNotification('❌ Password errata', 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Errore di connessione', 'error');
+    }
+});
+</script>
+{% endblock %}

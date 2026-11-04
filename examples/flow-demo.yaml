@@ -1,0 +1,462 @@
+start_node: question_collect_data
+metadata:
+  name: GDPR
+  description: GDPR Compliant
+  category: GDPR
+  version: 1.0.0
+  author: Andrea Manzi
+
+nodes:
+  question_collect_data:
+    type: question
+    text: "La tua attività raccoglie o tratta dati di persone fisiche?"
+    answers:
+      - label: "Sì"
+        next: question_data_type
+      - label: "No"
+        next: output_no_gdpr
+
+  question_data_type:
+    type: question
+    text: "Che tipo di dati raccogli principalmente?"
+    answers:
+      - label: "Dati personali base (nome, email, telefono)"
+        next: question_purpose
+      - label: "Dati sensibili (salute, religione, orientamento)"
+        next: output_sensitive_data
+      - label: "Dati finanziari (carte di credito, IBAN)"
+        next: output_financial_data
+
+  question_purpose:
+    type: question
+    text: "Per quale scopo principale usi questi dati?"
+    answers:
+      - label: "Marketing e newsletter"
+        next: question_consent
+      - label: "Gestione clienti/contratti"
+        next: question_volume
+      - label: "Analytics e statistiche"
+        next: question_anonymized
+
+  question_consent:
+    type: question
+    text: "Hai già implementato un sistema di consenso esplicito?"
+    answers:
+      - label: "Sì, con opt-in"
+        next: output_marketing_compliant
+      - label: "No, o uso opt-out"
+        next: output_marketing_non_compliant
+
+  question_volume:
+    type: question
+    text: "Quanti record/utenti gestisci approssimativamente?"
+    answers:
+      - label: "Meno di 1.000"
+        next: output_small_volume
+      - label: "Tra 1.000 e 10.000"
+        next: output_medium_volume
+      - label: "Oltre 10.000"
+        next: output_large_volume
+
+  question_anonymized:
+    type: question
+    text: "I dati sono completamente anonimizzati (impossibile risalire alla persona)?"
+    answers:
+      - label: "Sì, completamente anonimi"
+        next: output_anonymous_ok
+      - label: "No, o sono pseudonimizzati"
+        next: output_pseudonymized
+
+  output_no_gdpr:
+    type: output
+    title: "✅ GDPR Non Applicabile"
+    content: |
+      # Non sei soggetto al GDPR
+      
+      Se non raccogli dati di persone fisiche, il GDPR non si applica alla tua attività.
+      
+      ## ⚠️ Attenzione però!
+      
+      - Se in futuro raccoglierai anche **un solo dato** personale (es. email di contatto), dovrai conformarti al GDPR
+      - Considera se raccogli **indirettamente** dati tramite servizi terzi (Google Analytics, ecc.)
+      
+      ## Consigli
+      
+      - Monitora eventuali cambiamenti nella tua attività
+      - Prepara una privacy policy preventiva
+      
+      📚 [Maggiori info sul GDPR](https://gdpr.eu/)
+
+  output_sensitive_data:
+    type: output
+    title: "🚨 ATTENZIONE: Dati Sensibili - Compliance Massima Richiesta"
+    content: |
+      # ⚠️ Tratti Categorie Speciali di Dati!
+      
+      I **dati sensibili** (art. 9 GDPR) richiedono misure di protezione **molto più stringenti**:
+      
+      ## Obblighi Critici
+      
+      - ✅ **Consenso esplicito** scritto e documentato
+      - ✅ **Valutazione d'impatto DPIA** obbligatoria
+      - ✅ **DPO (Data Protection Officer)** probabilmente necessario
+      - ✅ **Crittografia forte** dei dati
+      - ✅ **Log degli accessi** dettagliati
+      - ✅ **Formazione specifica** del personale
+      
+      ## Sanzioni
+      
+      Le violazioni possono costare fino a **20 milioni di euro** o il **4% del fatturato globale annuo**.
+      
+      ## 🎯 Prossimi Passi URGENTI
+      
+      1. Consulta immediatamente un **consulente GDPR/legale specializzato**
+      2. Rivedi tutte le tue procedure di sicurezza
+      3. Implementa sistemi di cifratura end-to-end
+      4. Documenta ogni trattamento
+      
+      ⚖️ [Consulta l'Art. 9 GDPR](https://gdpr-info.eu/art-9-gdpr/)
+      
+      ![Warning](data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iI2ZmNjYwMCIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiPiE8L3RleHQ+PC9zdmc+)
+
+  output_financial_data:
+    type: output
+    title: "💳 Dati Finanziari - GDPR + PCI DSS"
+    content: |
+      # Dati Finanziari: Doppia Compliance!
+      
+      Oltre al GDPR, devi rispettare anche il **PCI DSS** (Payment Card Industry Data Security Standard).
+      
+      ## ⚠️ Requisiti GDPR
+      
+      - ✅ Base legale chiara (contratto/consenso)
+      - ✅ Cifratura dei dati in transito e a riposo
+      - ✅ Registro dei trattamenti
+      - ✅ Privacy policy dettagliata
+      - ✅ Gestione data breach entro 72 ore
+      
+      ## 💳 Requisiti PCI DSS
+      
+      - ✅ Non memorizzare CVV/CVV2
+      - ✅ Tokenizzazione dei numeri di carta
+      - ✅ Network segmentato
+      - ✅ Audit periodici
+      
+      ## 🎯 Soluzione Consigliata
+      
+      **Usa un Payment Gateway certificato** come:
+      - Stripe
+      - PayPal
+      - Braintree
+      
+      Così deleghi la gestione sicura dei dati finanziari!
+      
+      ## Risorse
+      
+      📚 [PCI Security Standards](https://www.pcisecuritystandards.org/)
+      
+      📚 [GDPR e dati finanziari](https://gdpr.eu/data-protection/)
+
+  output_marketing_compliant:
+    type: output
+    title: "✅ Marketing: Sulla Strada Giusta!"
+    content: |
+      # Ottimo! Hai il consenso esplicito
+      
+      L'**opt-in** è fondamentale per il marketing sotto GDPR.
+      
+      ## ✅ Checklist Compliance Marketing
+      
+      Verifica di avere:
+      
+      - **Consenso granulare** (separato per email, SMS, profilazione)
+      - **Checkbox NON pre-selezionate**
+      - **Linguaggio chiaro** (no legalese incomprensibile)
+      - **Facile opt-out** (link unsubscribe in ogni email)
+      - **Registro dei consensi** con timestamp
+      - **Privacy policy aggiornata** e accessibile
+      
+      ## 📋 Obblighi Continuativi
+      
+      - Aggiorna la lista rimuovendo chi revoca il consenso
+      - Conserva proof of consent per almeno 3 anni
+      - Rivedi i consensi ogni 2 anni
+      
+      ## 🎯 Best Practices
+      
+      - Usa **double opt-in** (conferma via email)
+      - Offri preferenze granulari (frequenza email, argomenti)
+      - Sii trasparente su come usi i dati
+      
+      📧 [Email Marketing e GDPR](https://gdpr.eu/email-marketing/)
+
+  output_marketing_non_compliant:
+    type: output
+    title: "⚠️ Marketing: Rischio Non Conformità"
+    content: |
+      # Attenzione: Opt-out NON è sufficiente!
+      
+      Il GDPR richiede **consenso esplicito preventivo** (opt-in) per il marketing diretto.
+      
+      ## 🚨 Problemi dell'Opt-Out
+      
+      - ❌ Checkbox pre-selezionate = **NON valido**
+      - ❌ Silenzio-assenso = **NON valido**
+      - ❌ Consenso "implicito" = **NON valido**
+      
+      ## ✅ Come Conformarti SUBITO
+      
+      1. **Stop alle email** a chi non ha dato opt-in esplicito
+      2. **Campagna di re-consenso**: invia email di richiesta consenso
+      3. **Implementa doppio opt-in** per nuove iscrizioni
+      4. **Checkbox non pre-selezionate** nei form
+      5. **Documenta tutti i consensi** ricevuti
+      
+      ## ⚖️ Rischi
+      
+      Le sanzioni possono arrivare fino a:
+      - **10 milioni di euro**
+      - **2% del fatturato annuo globale**
+      
+      ## 🎯 Template Richiesta Re-Consenso
+      
+      > Oggetto: Aggiorna le tue preferenze
+      > 
+      > Ciao [Nome],
+      > 
+      > Per continuare a ricevere le nostre comunicazioni, conferma il tuo consenso cliccando qui: [Link]
+      > 
+      > Se non confermi entro [data], ti rimuoveremo dalla lista.
+      
+      📚 [Guida Consent GDPR](https://gdpr.eu/gdpr-consent-requirements/)
+
+  output_small_volume:
+    type: output
+    title: "📊 Piccolo Volume - Compliance Base"
+    content: |
+      # Gestione Clienti: Volume Ridotto
+      
+      Con meno di 1.000 record, hai comunque obblighi GDPR ma con una gestione più semplice.
+      
+      ## ✅ Obblighi Minimi
+      
+      - **Privacy Policy** chiara e accessibile
+      - **Base legale** per il trattamento (es. esecuzione contratto)
+      - **Informativa** al momento della raccolta dati
+      - **Diritti degli interessati**: accesso, rettifica, cancellazione
+      - **Sicurezza adeguata**: password, backup, antivirus
+      
+      ## 📋 NON Obbligatori (per te)
+      
+      - ❌ DPO (Data Protection Officer)
+      - ❌ DPIA (solo se trattamenti ad alto rischio)
+      - ❌ Registro trattamenti dettagliato (se <250 dipendenti)
+      
+      ## 🎯 Azioni Pratiche
+      
+      1. Crea privacy policy con generatore online
+      2. Implementa sistema di gestione richieste utenti
+      3. Fai backup regolari e sicuri
+      4. Forma il team sui principi GDPR base
+      
+      ## 🛠️ Tool Consigliati
+      
+      - **Iubenda** per privacy policy
+      - **Google Forms** con disclaimer
+      - **Fogli Excel cifrati** per piccoli DB
+      
+      📚 [GDPR per PMI](https://gdpr.eu/small-business/)
+
+  output_medium_volume:
+    type: output
+    title: "📊 Volume Medio - Compliance Strutturata"
+    content: |
+      # Gestione Clienti: Volume Medio
+      
+      Con 1.000-10.000 record sei in una zona che richiede **struttura e organizzazione**.
+      
+      ## ✅ Obblighi Completi
+      
+      - **Privacy Policy** professionale e dettagliata
+      - **Registro dei trattamenti** (anche se <250 dipendenti)
+      - **Procedure documentate** per data breach
+      - **Formazione periodica** del personale
+      - **Sicurezza IT** robusta (firewall, cifratura, access control)
+      - **Data Retention Policy** (cancellazione dati obsoleti)
+      
+      ## 🤔 Da Valutare
+      
+      - **DPO esterno** (consulente part-time)
+      - **DPIA** se usi profilazione o decisioni automatizzate
+      - **Software di Compliance** (es. OneTrust, TrustArc)
+      
+      ## 🎯 Piano d'Azione
+      
+      1. **Mappa tutti i trattamenti** (chi, cosa, perché, dove)
+      2. **Implementa sistema ticket** per richieste utenti
+      3. **Contratti DPA** con tutti i fornitori/sub-processor
+      4. **Backup cifrati** automatici giornalieri
+      5. **Penetration test** annuale
+      
+      ## 🛠️ Tool Professionali
+      
+      - **OneTrust** (compliance management)
+      - **Salesforce Shield** (CRM con GDPR features)
+      - **Varonis** (data security)
+      
+      ## ⚖️ Sanzioni Proporzionali
+      
+      Con questo volume, le multe possono essere significative: investi in compliance!
+      
+      📚 [Registro Trattamenti Template](https://gdpr.eu/data-processing-register/)
+
+  output_large_volume:
+    type: output
+    title: "🏢 Grande Volume - Compliance Enterprise"
+    content: |
+      # Gestione Clienti: Volume Alto
+      
+      Con oltre 10.000 record sei una **grande organizzazione** sotto GDPR e richiedi governance completa.
+      
+      ## ✅ Obblighi Imprescindibili
+      
+      - **DPO (Data Protection Officer)** interno o esterno
+      - **Registro trattamenti** dettagliato e aggiornato
+      - **DPIA** per tutti i trattamenti ad alto rischio
+      - **Data Breach Plan** testato e documentato
+      - **Security by Design & by Default**
+      - **Audit GDPR** annuale da ente esterno
+      - **Cifratura** end-to-end e at-rest
+      - **Segregazione dati** per ruoli e funzioni
+      
+      ## 🎯 Governance Necessaria
+      
+      - Comitato privacy con riunioni periodiche
+      - KPI di compliance misurabili
+      - Programma formazione continua
+      - Incident Response Team dedicato
+      - Budget dedicato alla compliance
+      
+      ## 🛠️ Stack Tecnologico Consigliato
+      
+      - **OneTrust / TrustArc** (Compliance Platform)
+      - **Varonis / BigID** (Data Discovery & Classification)
+      - **Netwrix** (Auditing & Monitoring)
+      - **CyberArk** (Privileged Access Management)
+      - **Cloudflare / Akamai** (DDoS Protection)
+      
+      ## ⚖️ Rischi Finanziari
+      
+      Con questo volume, una violazione può costare:
+      - Sanzioni fino a **20M€ o 4% fatturato globale**
+      - Danni reputazionali enormi
+      - Class action da utenti
+      
+      ## 📋 Certificazioni Consigliate
+      
+      - **ISO 27001** (Information Security)
+      - **ISO 27701** (Privacy Management)
+      - **SOC 2 Type II**
+      
+      ## 🚀 Prossimi Passi
+      
+      1. **Assumi/nomina DPO certificato**
+      2. **Gap Analysis** professionale
+      3. **Roadmap compliance** a 12 mesi
+      4. **Cyber insurance** adeguata
+      
+      📚 [Enterprise GDPR Framework](https://gdpr.eu/compliance/)
+      
+      ![Enterprise](data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzY2N2VlYSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiPvCfj6I8L3RleHQ+PC9zdmc+)
+
+  output_anonymous_ok:
+    type: output
+    title: "✅ Dati Anonimi - GDPR Non Applicabile"
+    content: |
+      # Ottimo! Dati Completamente Anonimi
+      
+      Se i dati sono **veramente anonimi** (impossibile risalire alla persona), il GDPR **non si applica**.
+      
+      ## ✅ Cos'è l'Anonimizzazione Vera
+      
+      - Rimozione di **tutti** gli identificatori (nome, email, IP, ID)
+      - Impossibile **re-identificare** anche incrociando dataset
+      - Irreversibile (nessuna chiave di de-anonimizzazione)
+      
+      ## ⚠️ Non Confondere con Pseudonimizzazione!
+      
+      La **pseudonimizzazione** (es. sostituire nome con ID) è ancora soggetta a GDPR!
+      
+      ### Esempi
+      
+      **Anonimo (OK):**
+      - "Il 65% degli utenti ha tra 25-35 anni"
+      - Statistiche aggregate senza dettagli individuali
+      
+      **Pseudonimizzato (NON OK):**
+      - "L'utente ID12345 ha 28 anni e abita a Roma"
+      - Ancora possibile risalire alla persona
+      
+      ## 🎯 Best Practices
+      
+      - **K-anonymity**: ogni record deve essere indistinguibile da almeno k-1 altri
+      - **Data aggregation**: raggruppa dati in bucket larghi
+      - **Noise injection**: aggiungi rumore statistico
+      - **Documenta il processo** di anonimizzazione
+      
+      ## 📚 Risorse
+      
+      - [Guidelines su anonimizzazione](https://gdpr.eu/anonymization/)
+      - [Differential Privacy](https://en.wikipedia.org/wiki/Differential_privacy)
+
+  output_pseudonymized:
+    type: output
+    title: "⚠️ Pseudonimizzazione - GDPR Si Applica"
+    content: |
+      # Attenzione: La Pseudonimizzazione ≠ Anonimizzazione
+      
+      I dati **pseudonimizzati** sono ancora dati personali secondo il GDPR!
+      
+      ## 🔍 Cos'è la Pseudonimizzazione
+      
+      Sostituzione degli identificatori diretti con pseudonimi (ID, token), ma è possibile **re-identificare** con informazioni aggiuntive.
+      
+      ### Esempi Comuni
+      - UserID invece di nome
+      - Token invece di email
+      - Hash di identificatori
+      - Cookie ID
+      
+      ## ✅ Obblighi GDPR (Ridotti ma Presenti)
+      
+      - Privacy policy semplificata
+      - Base legale per il trattamento (di solito: legittimo interesse)
+      - Sicurezza nella custodia della "chiave" di re-identificazione
+      - Diritti utenti applicabili se ri-associabili
+      
+      ## 🎯 Vantaggi della Pseudonimizzazione
+      
+      - ✅ **Riduce il rischio** in caso di breach
+      - ✅ **Facilita compliance** per analytics
+      - ✅ **Raccomandato dal GDPR** (art. 25 e 32)
+      - ✅ Utile per sviluppo/test con dati reali
+      
+      ## 🛠️ Tecniche Avanzate
+      
+      - **Hashing con salt** (SHA-256 + salt)
+      - **Tokenization** (sostituzione irreversibile)
+      - **Encryption** (chiave custodita separatamente)
+      - **Data masking** (modifica parziale)
+      
+      ## 📋 Best Practice
+      
+      1. Separa dati pseudonimizzati dalle chiavi di re-identificazione
+      2. Access control stringente sulle chiavi
+      3. Audit log su re-identificazioni
+      4. Valuta se serve davvero re-identificare
+      
+      ## 🚀 Step Successivo
+      
+      Considera la **vera anonimizzazione** aggregando ulteriormente i dati per essere completamente fuori dal GDPR!
+      
+      📚 [GDPR Art. 4 - Pseudonimizzazione](https://gdpr-info.eu/art-4-gdpr/)

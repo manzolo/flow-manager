@@ -1,0 +1,111 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Flask
+instance/
+.webassets-cache
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Documentation
+docs/_build/
+site/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+*.swp
+*.tmp
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution
+*.tar.gz
+*.zip
+*.rar
+
+# Code merged output (se non vuoi versionarlo)
+code_merged.txt
+
+# Flows backup (se crei backup automatici)
+flows-backup-*.tar.gz
+backups/
+
+# I flussi sono contenuti: gli esempi stanno in examples/, flows/ è locale
+flows/*
+!flows/.gitkeep
+
+
+# Session files
+flask_session/
+
+# export statico e venv
+_site/
+.venv/

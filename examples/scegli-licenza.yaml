@@ -1,0 +1,117 @@
+# Flusso di esempio: quale licenza open source scegliere.
+# Copialo in flows/ (make demo) e aprilo da http://localhost:8000
+start_node: tipo_progetto
+metadata:
+  name: Quale licenza open source?
+  description: Tre domande per orientarsi fra MIT, Apache-2.0, GPL-3.0 e AGPL-3.0
+  category: Esempi
+  version: 1.0.0
+  author: Andrea Manzi
+  order: 1
+
+nodes:
+  tipo_progetto:
+    type: question
+    text: "Che cosa stai pubblicando?"
+    answers:
+      - label: "Codice sorgente (una libreria, un'applicazione)"
+        next: copyleft
+      - label: "Documentazione, testi o immagini"
+        next: out_cc_by
+
+  copyleft:
+    type: question
+    text: "Chi modifica e ridistribuisce il tuo codice deve pubblicare anche le sue modifiche?"
+    answers:
+      - label: "No, va bene anche l'uso in software chiuso"
+        next: brevetti
+      - label: "Sì, le modifiche devono restare libere"
+        next: servizio_rete
+
+  brevetti:
+    type: question
+    text: "Ti serve una clausola esplicita sui brevetti?"
+    answers:
+      - label: "No, voglio la licenza più corta e semplice"
+        next: out_mit
+      - label: "Sì, il progetto è grande o lo usano aziende"
+        next: out_apache
+
+  servizio_rete:
+    type: question
+    text: "Il software verrà usato soprattutto come servizio in rete (web app, API)?"
+    answers:
+      - label: "No, si installa e si esegue in locale"
+        next: out_gpl
+      - label: "Sì, gira su un server e gli utenti lo usano dal browser"
+        next: out_agpl
+
+  out_mit:
+    type: output
+    title: "MIT"
+    content: |
+      ## Licenza MIT
+
+      Poche righe: chiunque può usare, copiare, modificare e vendere il codice, purché mantenga
+      l'avviso di copyright. Nessun obbligo di pubblicare le modifiche.
+
+      **Quando**: librerie piccole, strumenti, esempi, quando vuoi la massima diffusione.
+
+      **Come**: un file `LICENSE` nella radice del repository con il testo da
+      [choosealicense.com/licenses/mit](https://choosealicense.com/licenses/mit/).
+
+  out_apache:
+    type: output
+    title: "Apache-2.0"
+    content: |
+      ## Licenza Apache 2.0
+
+      Permissiva come la MIT, ma con una **concessione esplicita dei brevetti** e l'obbligo di
+      segnalare le modifiche ai file.
+
+      **Quando**: progetti di una certa dimensione, usati anche da aziende.
+
+      **Come**: file `LICENSE` più, se serve, un file `NOTICE`.
+      Testo su [choosealicense.com/licenses/apache-2.0](https://choosealicense.com/licenses/apache-2.0/).
+
+  out_gpl:
+    type: output
+    title: "GPL-3.0"
+    content: |
+      ## GNU GPL v3
+
+      **Copyleft**: chi distribuisce il programma, anche modificato, deve farlo con la stessa
+      licenza e rendere disponibile il sorgente.
+
+      | | GPL-3.0 |
+      |---|---|
+      | Uso commerciale | sì |
+      | Modifiche da pubblicare | sì, se distribuisci |
+      | Uso come servizio in rete | non obbliga |
+
+      Testo su [choosealicense.com/licenses/gpl-3.0](https://choosealicense.com/licenses/gpl-3.0/).
+
+  out_agpl:
+    type: output
+    title: "AGPL-3.0"
+    content: |
+      ## GNU AGPL v3
+
+      Come la GPL, ma l'obbligo di dare il sorgente vale **anche per chi offre il software in
+      rete** senza distribuirlo: pensata per le applicazioni web.
+
+      Testo su [choosealicense.com/licenses/agpl-3.0](https://choosealicense.com/licenses/agpl-3.0/).
+
+  out_cc_by:
+    type: output
+    title: "Creative Commons BY 4.0"
+    content: |
+      ## CC BY 4.0
+
+      Per contenuti che non sono codice: chiunque può riusarli, anche commercialmente,
+      **citando l'autore**. Se vuoi che le opere derivate restino libere, usa la CC BY-SA 4.0.
+
+      Le licenze software (MIT, GPL...) non sono adatte ai testi, e le Creative Commons non sono
+      adatte al codice.
+
+      Dettagli su [creativecommons.org/licenses/by/4.0](https://creativecommons.org/licenses/by/4.0/deed.it).

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - {{ site_title }}{% endblock %}
+
+{% block content %}
+<div class="output-page" data-flow-id="{{ flow_id }}" data-node-id="{{ node_id }}">
+    <h1 class="output-title">{{ title }}</h1>
+    <div class="output-markdown" id="markdown-content">{{ content | safe }}</div>
+    <div class="output-actions">
+        <button onclick="window.location.href=appUrl('/flow/{{ flow_id }}')" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna al Flow
+        </button>
+        <button onclick="window.location.href=appUrl('/')" class="btn btn-outline">
+            <i class="fas fa-home"></i> Torna alla Homepage
+        </button>
+        <button onclick="exportResultPdf(true)" class="btn btn-primary">
+            <i class="fas fa-file-pdf"></i> Esporta PDF (percorso)
+        </button>
+        <button onclick="exportResultPdf(false)" class="btn btn-outline">
+            <i class="fas fa-file-pdf"></i> Esporta PDF (risultato)
+        </button>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='vendor/marked.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/highlight/highlight.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/jspdf.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/jspdf.plugin.autotable.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/fonts/dejavu.js') }}"></script>
+<script src="{{ url_for('static', filename='js/markdown.js') }}"></script>
+<script src="{{ url_for('static', filename='js/result-export.js') }}"></script>
+{% endblock %}

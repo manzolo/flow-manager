@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Flow Builder - Generatore YAML{% endblock %}
+
+{% block content %}
+    <div class="builder-header">
+        <h1><i class="fas fa-sitemap"></i> Flow Builder</h1>
+        <p>Crea il tuo flusso di domande visualmente e genera il file YAML automaticamente</p>
+    </div>
+
+    <div class="help-text">
+        <strong>💡 Come funziona:</strong> Crea nodi di tipo "Domanda" o "Output finale". Per le domande, aggiungi le risposte possibili e collega ogni risposta al nodo successivo. Quando hai finito, clicca su "Salva Flusso" per inviare al server o "Genera YAML" per scaricare il file!
+    </div>
+
+    <div class="builder-container container">
+        <!-- Editor Nodo -->
+        <div class="panel">
+            <h2>✏️ Editor Nodo</h2>
+
+            <div class="metadata-form">
+                <h3>Metadati Flusso</h3>
+                <div class="form-group">
+                    <label for="flowId">ID Flusso (univoco, senza spazi)</label>
+                    <input type="text" id="flowId" placeholder="es: flow_gdpr" />
+                </div>
+                <div class="form-group">
+                    <label for="flowName">Nome Flusso</label>
+                    <input type="text" id="flowName" placeholder="es: Flusso GDPR" />
+                </div>
+                <div class="form-group">
+                    <label for="flowDescription">Descrizione</label>
+                    <textarea id="flowDescription" placeholder="Descrizione del flusso"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="flowCategory">Categoria</label>
+                    <input type="text" id="flowCategory" placeholder="es: Compliance" />
+                </div>
+                <div class="form-group">
+                    <label for="flowVersion">Versione</label>
+                    <input type="text" id="flowVersion" placeholder="es: 1.0.0" value="1.0.0" />
+                </div>
+                <div class="form-group">
+                    <label for="flowAuthor">Autore</label>
+                    <input type="text" id="flowAuthor" placeholder="es: John Doe" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="nodeId">ID Nodo (univoco, senza spazi)</label>
+                <input type="text" id="nodeId" placeholder="es: question1, output_result" />
+            </div>
+
+            <div class="form-group">
+                <label for="nodeType">Tipo Nodo</label>
+                <select id="nodeType" onchange="toggleNodeFields()">
+                    <option value="question">❓ Domanda</option>
+                    <option value="output">📄 Output Finale</option>
+                </select>
+            </div>
+
+            <!-- Campi per Domanda -->
+            <div id="questionFields">
+                <div class="form-group">
+                    <label for="questionText">Testo Domanda</label>
+                    <input type="text" id="questionText" placeholder="Qual è la tua domanda?" />
+                </div>
+
+                <div class="form-group">
+                    <label>Risposte Possibili</label>
+                    <div class="answers-container" id="answersContainer">
+                        <!-- Inizializzato dinamicamente -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="addAnswer()">+ Aggiungi Risposta</button>
+                </div>
+            </div>
+
+            <!-- Campi per Output -->
+            <div id="outputFields" style="display:none;">
+                <div class="form-group">
+                    <label for="outputTitle">Titolo Output</label>
+                    <input type="text" id="outputTitle" placeholder="Titolo del risultato finale" />
+                </div>
+
+                <div class="form-group">
+                    <label for="outputContent">Contenuto (Markdown)</label>
+                    <textarea id="outputContent" placeholder="Scrivi qui il contenuto in Markdown...&#10;&#10;Puoi usare:&#10;# Titolo&#10;**grassetto**&#10;- lista&#10;[link](url)"></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="saveNode()">💾 Salva Nodo</button>
+                <button class="btn btn-secondary" onclick="clearForm()">🔄 Pulisci Form</button>
+            </div>
+        </div>
+
+        <!-- Lista Nodi -->
+        <div class="panel">
+            <h2>📋 Nodi Creati</h2>
+
+            <div class="form-group">
+                <label for="startNode">Nodo di Partenza</label>
+                <input type="text" id="startNode" placeholder="es: question1" value="question1" />
+            </div>
+
+            <div class="nodes-list" id="nodesList">
+                <p style="color: #999; text-align: center; padding: 40px;">Nessun nodo creato ancora. Inizia creando il primo nodo!</p>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-success" onclick="saveFlow()">💾 Salva Flusso</button>
+                <button class="btn btn-primary" onclick="generateYAML()">⚡ Genera YAML</button>
+                <button class="btn btn-secondary" onclick="clearAll()">🗑️ Cancella Tutto</button>
+                <button onclick="window.location.href='/'" class="btn btn-outline">
+                    <i class="fas fa-home"></i> Torna alla Homepage
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output YAML -->
+    <div class="panel">
+        <h2>📦 YAML Generato</h2>
+        <pre class="yaml-output" id="yamlOutput">Il tuo YAML apparirà qui dopo aver cliccato "Genera YAML"</pre>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="downloadYAML()" id="downloadBtn" style="display:none;">⬇️ Scarica flow.yaml</button>
+            <button class="btn btn-secondary" onclick="copyYAML()">📋 Copia negli Appunti</button>
+        </div>
+        <div class="success-message" id="successMessage"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let nodes = {};
+    let currentEditingNode = null;
+    let flowId = {% if flow_id %}"{{ flow_id }}"{% else %}null{% endif %};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if flow_data %}
+        const flowData = {{ flow_data | tojson | safe }};
+        document.getElementById('flowId').value = "{{ flow_id }}";
+        document.getElementById('flowId').disabled = true;
+        document.getElementById('flowName').value = flowData.metadata?.name || '';
+        document.getElementById('flowDescription').value = flowData.metadata?.description || '';
+        document.getElementById('flowCategory').value = flowData.metadata?.category || 'General';
+        document.getElementById('flowVersion').value = flowData.metadata?.version || '1.0.0';
+        document.getElementById('flowAuthor').value = flowData.metadata?.author || '';
+        document.getElementById('startNode').value = flowData.start_node || '';
+        nodes = flowData.nodes || {};
+        renderNodes();
+        generateYAML();
+        showNotification('✅ Flusso "{{ flow_id }}" caricato con successo!', 'success');
+        {% else %}
+        initializeAnswers();
+        {% endif %}
+
+        toggleNodeFields();
+    });
+
+    function initializeAnswers() {
+        const container = document.getElementById('answersContainer');
+        if (!container) return;
+        container.innerHTML = `
+            <div class="answer-item">
+                <input type="text" placeholder="Etichetta risposta (es: Sì)" class="answer-label" />
+                <input type="text" placeholder="Nodo successivo (es: question2)" class="answer-next" />
+                <button class="btn btn-danger" onclick="this.parentElement.remove()">✕ Rimuovi</button>
+            </div>
+        `;
+    }
+
+    function toggleNodeFields() {
+        const type = document.getElementById('nodeType').value;
+        document.getElementById('questionFields').style.display = type === 'question' ? 'block' : 'none';
+        document.getElementById('outputFields').style.display = type === 'output' ? 'block' : 'none';
+    }
+
+    function addAnswer() {
+        const container = document.getElementById('answersContainer');
+        const answerDiv = document.createElement('div');
+        answerDiv.className = 'answer-item';
+        answerDiv.innerHTML = `
+            <input type="text" placeholder="Etichetta risposta" class="answer-label" />
+            <input type="text" placeholder="Nodo successivo" class="answer-next" />
+            <button class="btn btn-danger" onclick="this.parentElement.remove()">✕ Rimuovi</button>
+        `;
+        container.appendChild(answerDiv);
+    }
+
+    function saveNode() {
+        const nodeId = document.getElementById('nodeId').value.trim();
+        if (!nodeId) { showNotification('Inserisci un ID per il nodo!', 'warning'); return; }
+        if (nodeId.includes(' ')) { showNotification('L\'ID del nodo non può contenere spazi!', 'warning'); return; }
+        if (nodes[nodeId] && nodeId !== currentEditingNode) { showNotification('Questo ID è già in uso!', 'warning'); return; }
+
+        const type = document.getElementById('nodeType').value;
+        const node = { type };
+
+        if (type === 'question') {
+            const text = document.getElementById('questionText').value.trim();
+            if (!text) { showNotification('Inserisci il testo della domanda!', 'warning'); return; }
+            const answers = [];
+            document.querySelectorAll('.answer-item').forEach(item => {
+                const label = item.querySelector('.answer-label').value.trim();
+                const next = item.querySelector('.answer-next').value.trim();
+                if (label && next) answers.push({ label, next });
+            });
+            if (answers.length < 2) { showNotification('Aggiungi almeno 2 risposte per una domanda!', 'warning'); return; }
+            node.text = text;
+            node.answers = answers;
+        } else {
+            const title = document.getElementById('outputTitle').value.trim();
+            const content = document.getElementById('outputContent').value.trim();
+            if (!title || !content) { showNotification('Inserisci titolo e contenuto per l\'output!', 'warning'); return; }
+            node.title = title;
+            node.content = content;
+        }
+
+        if (currentEditingNode && currentEditingNode !== nodeId) delete nodes[currentEditingNode];
+        nodes[nodeId] = node;
+        renderNodes();
+        clearForm();
+        showNotification(`Nodo "${nodeId}" salvato con successo!`, 'success');
+        generateYAML();
+    }
+
+    async function saveFlow() {
+        const currentFlowId = document.getElementById('flowId').value.trim();
+        if (!currentFlowId) { showNotification('Inserisci un ID per il flusso!', 'warning'); return; }
+        if (currentFlowId.includes(' ')) { showNotification('L\'ID del flusso non può contenere spazi!', 'warning'); return; }
+        const startNode = document.getElementById('startNode').value.trim();
+        if (!startNode || !nodes[startNode]) { showNotification('Il nodo di partenza non esiste! Inserisci un ID valido.', 'warning'); return; }
+
+        const flowData = {
+            start_node: startNode,
+            metadata: {
+                name: document.getElementById('flowName').value.trim() || currentFlowId,
+                description: document.getElementById('flowDescription').value.trim(),
+                category: document.getElementById('flowCategory').value.trim() || 'General',
+                version: document.getElementById('flowVersion').value.trim() || '1.0.0',
+                author: document.getElementById('flowAuthor').value.trim() || 'Unknown',
+                created_at: new Date().toISOString()
+            },
+            nodes: nodes
+        };
+
+        try {
+            const url = flowId ? `/api/flows/${flowId}` : '/api/flows';
+            const method = flowId ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: currentFlowId, flow: flowData })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification(`Flusso "${currentFlowId}" salvato con successo sul server!`, 'success');
+                if (!flowId) setTimeout(() => { window.location.href = `/builder/${currentFlowId}`; }, 1500);
+            } else {
+                showNotification(`Errore nel salvataggio del flusso: ${data.error || data.errors?.join(', ')}`, 'error');
+            }
+        } catch (error) {
+            showNotification('Errore di connessione durante il salvataggio del flusso', 'error');
+        }
+    }
+
+    function renderNodes() {
+        const container = document.getElementById('nodesList');
+        if (Object.keys(nodes).length === 0) {
+            container.innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">Nessun nodo creato ancora.</p>';
+            return;
+        }
+        container.innerHTML = '';
+        for (const [id, node] of Object.entries(nodes)) {
+            const card = document.createElement('div');
+            card.className = `node-card ${id === currentEditingNode ? 'active' : ''}`;
+            card.onclick = () => editNode(id);
+            let content = node.type === 'question'
+                ? `<span class="node-type">Domanda</span><h3>${id}</h3><p><strong>Testo:</strong> ${node.text}</p><p><strong>Risposte:</strong> ${node.answers.length}</p>`
+                : `<span class="node-type output">Output</span><h3>${id}</h3><p><strong>Titolo:</strong> ${node.title}</p>`;
+            card.innerHTML = content + `<button class="btn btn-danger" onclick="event.stopPropagation(); deleteNode('${id}')">🗑️ Elimina</button>`;
+            container.appendChild(card);
+        }
+    }
+
+    function editNode(id) {
+        const node = nodes[id];
+        currentEditingNode = id;
+        document.getElementById('nodeId').value = id;
+        document.getElementById('nodeType').value = node.type;
+        toggleNodeFields();
+        if (node.type === 'question') {
+            document.getElementById('questionText').value = node.text || '';
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+            node.answers.forEach(answer => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'answer-item';
+                answerDiv.innerHTML = `
+                    <input type="text" placeholder="Etichetta risposta" class="answer-label" value="${answer.label || ''}" />
+                    <input type="text" placeholder="Nodo successivo" class="answer-next" value="${answer.next || ''}" />
+                    <button class="btn btn-danger" onclick="this.parentElement.remove()">✕ Rimuovi</button>
+                `;
+                container.appendChild(answerDiv);
+            });
+            if (node.answers.length === 0) addAnswer();
+        } else {
+            document.getElementById('outputTitle').value = node.title || '';
+            document.getElementById('outputContent').value = node.content || '';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        renderNodes();
+    }
+
+    function deleteNode(id) {
+        showConfirmDialog(`Sei sicuro di voler eliminare il nodo "${id}"?`, () => {
+            delete nodes[id];
+            if (currentEditingNode === id) clearForm();
+            renderNodes();
+            showNotification(`Nodo "${id}" eliminato`, 'success');
+            generateYAML();
+        });
+    }
+
+    function clearForm() {
+        document.getElementById('nodeId').value = '';
+        document.getElementById('nodeType').value = 'question';
+        document.getElementById('questionText').value = '';
+        document.getElementById('outputTitle').value = '';
+        document.getElementById('outputContent').value = '';
+        initializeAnswers();
+        currentEditingNode = null;
+        toggleNodeFields();
+    }
+
+    function generateYAML() {
+        if (Object.keys(nodes).length === 0) { showNotification('Crea almeno un nodo prima di generare il YAML!', 'warning'); return; }
+        const startNode = document.getElementById('startNode').value.trim();
+        if (!startNode || !nodes[startNode]) { showNotification('Il nodo di partenza non esiste! Inserisci un ID valido.', 'warning'); return; }
+
+        const meta = {
+            name: document.getElementById('flowName').value.trim() || document.getElementById('flowId').value.trim() || 'Unnamed Flow',
+            description: document.getElementById('flowDescription').value.trim(),
+            category: document.getElementById('flowCategory').value.trim() || 'General',
+            version: document.getElementById('flowVersion').value.trim() || '1.0.0',
+            author: document.getElementById('flowAuthor').value.trim() || 'Unknown',
+            created_at: new Date().toISOString()
+        };
+
+        let yaml = `start_node: ${startNode}\n\nmetadata:\n`;
+        yaml += `  name: "${meta.name.replace(/"/g, '\\"')}"\n`;
+        yaml += `  description: "${meta.description.replace(/"/g, '\\"')}"\n`;
+        yaml += `  category: "${meta.category}"\n`;
+        yaml += `  version: "${meta.version}"\n`;
+        yaml += `  author: "${meta.author.replace(/"/g, '\\"')}"\n`;
+        yaml += `  created_at: "${meta.created_at}"\n\nnodes:\n`;
+
+        for (const [id, node] of Object.entries(nodes)) {
+            yaml += `  ${id}:\n    type: ${node.type}\n`;
+            if (node.type === 'question') {
+                yaml += `    text: "${node.text.replace(/"/g, '\\"')}"\n    answers:\n`;
+                node.answers.forEach(a => { yaml += `      - label: "${a.label.replace(/"/g, '\\"')}"\n        next: ${a.next}\n`; });
+            } else {
+                yaml += `    title: "${node.title.replace(/"/g, '\\"')}"\n    content: |\n`;
+                node.content.split('\n').forEach(line => { yaml += `      ${line}\n`; });
+            }
+            yaml += `\n`;
+        }
+
+        document.getElementById('yamlOutput').textContent = yaml;
+        document.getElementById('downloadBtn').style.display = 'inline-block';
+    }
+
+    function downloadYAML() {
+        const yaml = document.getElementById('yamlOutput').textContent;
+        const currentFlowId = document.getElementById('flowId').value.trim() || 'flow';
+        const blob = new Blob([yaml], { type: 'text/yaml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentFlowId}.yaml`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification(`File ${currentFlowId}.yaml scaricato!`, 'success');
+    }
+
+    function copyYAML() {
+        navigator.clipboard.writeText(document.getElementById('yamlOutput').textContent)
+            .then(() => showNotification('YAML copiato negli appunti!', 'success'))
+            .catch(() => showNotification('Errore nella copia del YAML', 'error'));
+    }
+
+    function clearAll() {
+        showConfirmDialog('Sei sicuro di voler cancellare tutti i nodi?', () => {
+            nodes = {};
+            renderNodes();
+            clearForm();
+            document.getElementById('flowId').value = '';
+            document.getElementById('flowId').disabled = false;
+            document.getElementById('flowName').value = '';
+            document.getElementById('flowDescription').value = '';
+            document.getElementById('flowCategory').value = '';
+            document.getElementById('flowVersion').value = '1.0.0';
+            document.getElementById('flowAuthor').value = '';
+            document.getElementById('startNode').value = 'question1';
+            document.getElementById('yamlOutput').textContent = 'Il tuo YAML apparirà qui dopo aver cliccato "Genera YAML"';
+            document.getElementById('downloadBtn').style.display = 'none';
+            showNotification('Tutti i nodi e i metadati sono stati cancellati', 'success');
+        });
+    }
+</script>
+{% endblock %}

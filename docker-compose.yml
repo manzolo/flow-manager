@@ -1,0 +1,16 @@
+services:
+  flow-manager:
+    build: .
+    image: flow-manager:local
+    container_name: flow-manager
+    # stesso utente dell'host, cosi' il builder puo' scrivere in ./flows
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      # i flussi stanno qui, sull'host: si aggiungono e si modificano senza riavviare
+      - ./flows:/app/flows
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
